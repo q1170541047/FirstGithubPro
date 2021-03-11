@@ -1,4 +1,6 @@
-package com.netease.nim.uikit.business.info;
+package com.yiche.camerax.video.info;
+
+import java.io.Serializable;
 
 /**
  * @Description: java类作用描述
@@ -8,7 +10,7 @@ package com.netease.nim.uikit.business.info;
  * @UpdateDate: 2021/2/23 13:19
  */
 
-public class ChoiceMediaInfo {
+public class ChoiceMediaInfo implements Serializable {
     String path;
     String imagePath;
     int type;

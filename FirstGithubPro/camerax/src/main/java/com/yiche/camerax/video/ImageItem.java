@@ -1,4 +1,4 @@
-package com.lzy.imagepicker.bean;
+package com.yiche.camerax.video;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -102,7 +102,7 @@ public class ImageItem implements Serializable, Parcelable {
         this.isShow=in.readInt();
     }
 
-    public static final Parcelable.Creator<ImageItem> CREATOR = new Parcelable.Creator<ImageItem>() {
+    public static final Creator<ImageItem> CREATOR = new Creator<ImageItem>() {
         @Override
         public ImageItem createFromParcel(Parcel source) {
             return new ImageItem(source);

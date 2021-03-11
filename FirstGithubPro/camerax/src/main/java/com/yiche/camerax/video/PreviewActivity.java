@@ -1,4 +1,4 @@
-package com.newyiche.activity.video;
+package com.yiche.camerax.video;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -6,17 +6,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
-import com.netease.nim.uikit.business.info.ChoiceMediaInfo;
-import com.newyiche.utils.ActivityManager;
-import com.newyiche.utils.MyToastUtil;
-import com.newyiche.view.TitleBarView;
-import com.yiche.ycysj.R;
+import com.yiche.camerax.R;
 
-import org.greenrobot.eventbus.EventBus;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,7 +33,7 @@ public class PreviewActivity extends AppCompatActivity {
         Intent intent = new Intent(activity, PreviewActivity.class);
         intent.putExtra(KEY_PREVIEW_URL, previewUrl);
         intent.putExtra(KEY_IS_VIDEO, isVideo);
-        activity.startActivity(intent);
+        activity.startActivityForResult(intent,0);
     }
 
     boolean isVideo;
@@ -64,18 +60,18 @@ public class PreviewActivity extends AppCompatActivity {
     }
 
     private void initTitlebar() {
-        TitleBarView titleBarView = findViewById(R.id.titleBarView);
-        titleBarView.initTitleBar(R.drawable.back, "预览", "确认选择", new View.OnClickListener() {
+        TextView title_rightTv=findViewById(R.id.title_rightTv);
+        TextView title_finishTv=findViewById(R.id.title_finishTv);
+        title_rightTv.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            setResult(RESULT_OK, intent);
+            finish();
+
+        });
+        title_finishTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (v.getId() == R.id.title_finishTv) {
-                    onBackPressed();
-                } else if (v.getId() == R.id.title_rightTv) {
-                    EventBus.getDefault().post(new ChoiceMediaInfo(path, path, isVideo ? 0 : 1));
-                    ActivityManager.getInstance().remove(CameraActivity.class);
-                    finish();
-
-                }
+                onBackPressed();
             }
         });
     }

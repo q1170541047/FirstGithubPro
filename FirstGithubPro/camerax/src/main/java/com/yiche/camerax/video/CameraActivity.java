@@ -1,8 +1,10 @@
-package com.newyiche.activity.video;
+package com.yiche.camerax.video;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,9 +12,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -21,26 +23,16 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.webkit.MimeTypeMap;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import com.blankj.utilcode.util.ScreenUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.gyf.immersionbar.ImmersionBar;
-import com.lzy.imagepicker.ImagePicker;
-import com.lzy.imagepicker.bean.ImageItem;
-import com.lzy.imagepicker.ui.ImagePreviewDelActivity;
-import com.newyiche.utils.MyToastUtil;
-import com.newyiche.utils.proUtil.CommonUtils;
-import com.newyiche.view.customerview.ClipViewLayout;
-import com.yiche.ycysj.R;
-import com.yiche.ycysj.app.utils.ToastUtil;
-import com.yiche.ycysj.mvp.ui.adapter.PhotoXAdapter;
+import com.yiche.camerax.R;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -146,7 +138,15 @@ public class CameraActivity extends AppCompatActivity implements BaseQuickAdapte
     TextView ivFinsh;
     MySensorHelper mMySensor;
     int targetRotation = Surface.ROTATION_0;
-
+    public static final String EXTRA_RESULT_ITEMS = "extra_result_items";
+    public static final String EXTRA_SELECTED_IMAGE_POSITION = "selected_image_position";
+    public static final String EXTRA_IMAGE_ITEMS = "extra_image_items";
+    public static final String EXTRA_FROM_ITEMS = "extra_from_items";
+    public static final int REQUEST_CODE_TAKE = 1001;
+    public static final int REQUEST_CODE_CROP = 1002;
+    public static final int REQUEST_CODE_PREVIEW = 1003;
+    public static final int RESULT_CODE_ITEMS = 1004;
+    public static final int RESULT_CODE_BACK = 1005;
     public void setTargetRotation(int targetRotation) {
         this.targetRotation = targetRotation;
     }
@@ -210,8 +210,8 @@ public class CameraActivity extends AppCompatActivity implements BaseQuickAdapte
                         isSelectData.add(data.get(i));
                     }
                 }
-                intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, isSelectData);
-                setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
+                intent.putExtra(EXTRA_RESULT_ITEMS, isSelectData);
+                setResult(RESULT_CODE_ITEMS, intent);
                 finish();
             }
         });
@@ -323,7 +323,7 @@ public class CameraActivity extends AppCompatActivity implements BaseQuickAdapte
                 }
             });
         } else {
-            ToastUtil.showToast("超过最大张数限制", Toast.LENGTH_SHORT);
+            Toast.makeText(this, "超过最大张数限制", Toast.LENGTH_SHORT).show();
 
         }
     }
@@ -355,10 +355,52 @@ public class CameraActivity extends AppCompatActivity implements BaseQuickAdapte
 //                        Log.d(TAG, "Image capture scanned into media store: $uri" + uri);
 //                    }
 //                });
-        CommonUtils.insertIntoMediaStore(this, outputFilePath, takingPicture);
+        insertIntoMediaStore(this, outputFilePath, takingPicture);
         PreviewActivity.start(this, outputFilePath, !takingPicture);
     }
+    public static void insertIntoMediaStore(Context context, String path, boolean takingPicture) {
+        if (!takingPicture) {//视频
+            ContentResolver mContentResolver = context.getContentResolver();
+            long createTime = System.currentTimeMillis();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.TITLE, path);
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, path);
+            //值一样，但是还是用常量区分对待
+            values.put(MediaStore.Video.VideoColumns.DATE_TAKEN, createTime);
+            values.put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis());
+            values.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis());
+            values.put(MediaStore.MediaColumns.DATA, path);
+//       values.put(MediaStore.MediaColumns.SIZE);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, getVideoMimeType(path));
+            //插入
+            mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+        } else {
+            addMediaStore(context,new File(path),path);
+        }
 
+    }
+
+    // 获取video的mine_type,暂时只支持mp4,3gp
+    private static String getVideoMimeType(String path) {
+        String lowerPath = path.toLowerCase();
+        if (lowerPath.endsWith("mp4") || lowerPath.endsWith("mpeg4")) {
+            return "video/mp4";
+        } else if (lowerPath.endsWith("3gp")) {
+            return "video/3gp";
+        }
+        return "video/mp4";
+    }
+    public static void addMediaStore(Context context, File targetFile, String path) {
+        ContentResolver resolver = context.getContentResolver();
+        ContentValues newValues = new ContentValues(5);
+        newValues.put(MediaStore.Images.Media.DISPLAY_NAME, targetFile.getName());
+        newValues.put(MediaStore.Images.Media.DATA, targetFile.getPath());
+        newValues.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis() / 1000);
+        newValues.put(MediaStore.Images.Media.SIZE, targetFile.length());
+        newValues.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newValues);
+        MediaScannerConnection.scanFile(context, new String[]{path}, null, null);//刷新相册
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -526,6 +568,20 @@ public class CameraActivity extends AppCompatActivity implements BaseQuickAdapte
         textureView.setTransform(matrix);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode==RESULT_OK){
+            if (requestCode==0){
+                Intent intent = new Intent();
+                intent.putExtra("path",outputFilePath);
+                intent.putExtra("type",takingPicture?1:0);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        }
+    }
+
     /**
      * 给预览设置外部扩展
      *
@@ -639,25 +695,23 @@ public class CameraActivity extends AppCompatActivity implements BaseQuickAdapte
 
     @Override
     public void onItemChildClick(BaseQuickAdapter adapter, View view, int i) {
-        switch (view.getId()) {
-            case R.id.ivSelect:
-                ImageItem imageItem = testAdapter.getData().get(i);
-                if (imageItem.isSelect == 1) {
-                    imageItem.isSelect = 0;
-                } else {
-                    imageItem.isSelect = 1;
-                }
-                testAdapter.notifyDataSetChanged();
-                break;
+        if (view.getId() == R.id.ivSelect) {
+            ImageItem imageItem = testAdapter.getData().get(i);
+            if (imageItem.isSelect == 1) {
+                imageItem.isSelect = 0;
+            } else {
+                imageItem.isSelect = 1;
+            }
+            testAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
     public void onItemClick(BaseQuickAdapter adapter, View view, int i) {
-        Intent intentPreview = new Intent(this, ImagePreviewDelActivity.class);
-        intentPreview.putExtra(ImagePicker.EXTRA_IMAGE_ITEMS, (ArrayList<ImageItem>) testAdapter.getData());
-        intentPreview.putExtra(ImagePicker.EXTRA_SELECTED_IMAGE_POSITION, i);
-        intentPreview.putExtra(ImagePicker.EXTRA_FROM_ITEMS, true);
-        startActivity(intentPreview);
+//        Intent intentPreview = new Intent(this, ImagePreviewDelActivity.class);
+//        intentPreview.putExtra(EXTRA_IMAGE_ITEMS, (ArrayList<ImageItem>) testAdapter.getData());
+//        intentPreview.putExtra(EXTRA_SELECTED_IMAGE_POSITION, i);
+//        intentPreview.putExtra(EXTRA_FROM_ITEMS, true);
+//        startActivity(intentPreview);
     }
 }

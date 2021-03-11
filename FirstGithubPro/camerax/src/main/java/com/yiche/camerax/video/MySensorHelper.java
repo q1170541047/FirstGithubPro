@@ -1,4 +1,4 @@
-package com.newyiche.activity.video;
+package com.yiche.camerax.video;
 
 import android.util.Log;
 import android.view.OrientationEventListener;

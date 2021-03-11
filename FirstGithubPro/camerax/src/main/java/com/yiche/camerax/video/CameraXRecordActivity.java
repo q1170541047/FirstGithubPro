@@ -1,4 +1,4 @@
-package com.newyiche.activity.video;
+package com.yiche.camerax.video;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -30,7 +30,7 @@ import android.widget.Toast;
 import com.blankj.utilcode.util.ScreenUtils;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.gyf.immersionbar.ImmersionBar;
-import com.yiche.ycysj.R;
+import com.yiche.camerax.R;
 
 import java.io.File;
 import java.util.ArrayList;

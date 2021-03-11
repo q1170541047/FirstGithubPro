@@ -1,4 +1,4 @@
-package com.newyiche.activity.video;
+package com.yiche.camerax.video;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -15,9 +15,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-
 import com.blankj.utilcode.util.SizeUtils;
-import com.yiche.ycysj.R;
+import com.yiche.camerax.R;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

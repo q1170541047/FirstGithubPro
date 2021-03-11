@@ -1,13 +1,10 @@
-package com.yiche.ycysj.mvp.ui.adapter;
+package com.yiche.camerax.video;
 
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
-
-import com.lzy.imagepicker.bean.ImageItem;
-import com.yiche.ycysj.R;
-import com.yiche.ycysj.app.utils.GlideUtils;
+import com.yiche.camerax.R;
 
 import java.util.ArrayList;
 
@@ -25,7 +22,7 @@ public class PhotoXAdapter extends BaseQuickAdapter<ImageItem, BaseViewHolder> {
         ImageView view = (ImageView) baseViewHolder.getView(R.id.iv);
         ImageView ivSelect = (ImageView) baseViewHolder.getView(R.id.ivSelect);
         baseViewHolder.addOnClickListener(R.id.ivSelect);
-        GlideUtils.getGlideUtils().loadGlide(mContext, imageItem.path, R.drawable.moren, view);
+        GlideUtils.getGlideUtils().loadGlide(mContext, imageItem.path, R.mipmap.moren, view);
         if (imageItem.isSelect == 1) {
             ivSelect.setImageResource(R.mipmap.select_delet);
         } else {
