@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
                 .doOnSubscribe(disposable -> {
 //                        getContext().showLoadingDialog();
                 }).subscribe(baseBean -> {
+
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
