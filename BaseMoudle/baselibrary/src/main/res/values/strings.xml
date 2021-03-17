@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BaseLibrary</string>
+    <string name="json_format_error">json格式错误</string>
+    <string name="http_format_error">返回数据格式错误</string>
+</resources>
